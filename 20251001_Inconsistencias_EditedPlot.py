@@ -1944,18 +1944,30 @@ def limpiar_excel(value):
 # ==========================
 # Guardar en Excel con hojas separadas
 # ==========================
+import os
+OUTPUT_DIR = r"C:\2025\01_Validaores_Totales\EditPLot"  # <- puedes cambiar esta ruta
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+from datetime import datetime
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+outfile = os.path.join(OUTPUT_DIR, f"Inconsistencias_EditedPlot_{timestamp}.xlsx")
+
 if not reporte.empty:
-    with pd.ExcelWriter("Inconsistencias_EditedPlot.xlsx", engine="openpyxl") as writer:
-        for columna in columnas_objetivo:
-            if columna == "ID":
-                continue  # no validamos ID directamente
-            df_columna = reporte[reporte["Columna Analizada"] == columna]
-            if not df_columna.empty:
-                nombre_hoja = columna[:31]  # Excel permite máx 31 caracteres
-                df_columna = df_columna.applymap(limpiar_excel)    
-                df_columna.to_excel(writer, sheet_name=nombre_hoja, index=False)
-    print("✅ Reporte generado: 'Inconsistencias_EditedPlot.xlsx'")
-    print(f"📊 Total inconsistencias encontradas: {len(reporte)}")
-else:
-    print("✅ No se encontraron campos inconsistentes en las columnas seleccionadas.")
-input("\nPresiona ENTER para salir...")
+   with pd.ExcelWriter(outfile, engine="openpyxl") as writer:
+    for columna in columnas_objetivo:
+        if columna == "ID":
+            continue
+        df_columna = reporte[reporte["Columna Analizada"] == columna]
+        if not df_columna.empty:
+            nombre_hoja = columna[:31]
+            df_columna = df_columna.applymap(limpiar_excel)    
+            df_columna.to_excel(writer, sheet_name=nombre_hoja, index=False)
+
+print(f"✅ Reporte generado en: {outfile}")
+print(f"📊 Total inconsistencias encontradas: {len(reporte)}")
+
+# Abrir automáticamente el archivo en Windows
+try:
+    os.startfile(outfile)
+except:
+    pass
